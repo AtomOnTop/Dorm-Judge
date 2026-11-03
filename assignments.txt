@@ -35,7 +35,7 @@ PART 1: SHARED NAMES (EVERYONE MUST USE THESE EXACT NAMES)
        "ban_status": bool
    }
    
-   Login Check Payload [GIVEN TO GEET BY ASH]
+   LoginCheckPayload [GIVEN TO GEET BY ASH]
    {
         "user_id":str,
         "password":str,
