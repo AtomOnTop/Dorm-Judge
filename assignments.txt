@@ -1,0 +1,318 @@
+PROJECT: HOSTEL COMPLAINT & TICKETING ENGINE
+TEAM CHECKLIST & SHARED NAMING CONTRACT
+
+
+====================================================================
+PART 1: SHARED NAMES (EVERYONE MUST USE THESE EXACT NAMES)
+====================================================================
+
+1. FILE NAMES
+   - Person 0: core_logic.py
+   - Person 1: database.py
+   - Person 2: workflows.py
+   - Person 3: app.py
+   - Database: complaints.db
+
+
+2. SHARED LISTS (Put these at the top of core_logic.py)
+   VALID_SCOPES     = ["HOSTEL ISSUE", "FLOOR ISSUE", "ROOM ISSUE"]
+   VALID_PRIORITIES = ["HIGH", "MEDIUM", "LOW"]
+   VALID_ISSUE_TAGS = ["WATER_ISSUE", "ELECTRICITY_ISSUE", "HEALTH_SAFETY", "INSECTS", "FURNITURE", "GENERAL"]
+   VALID_STATUSES   = ["OPEN", "CLOSED"]
+   VALID_ROLES      = ["student", "admin"]
+
+   USER_IDS         = ["student_01", "student_02", "admin_01"]
+   PASSWORDS        = ["pass123", "pass456", "adminpass"]
+   ROLES            = ["student", "student", "admin"]
+
+
+3. SHARED DICTIONARY FORMATS (Exact keys everyone must return/expect)
+
+   AuthPayload (Returned by login check): [RETRUNED BY GEET(P0)]
+   {
+       "authenticated": bool,
+       "user_id": str or None,
+       "ban_status": bool
+   }
+   
+   Login Check Payload [GIVEN TO GEET BY ASH]
+   {
+        "user_id":str,
+        "password":str,
+        "role": str or None
+   }
+
+   NLPAnalysisPayload (Returned by text analyzer):
+   {
+       "scope_tag": str,
+       "issue_tags": list[str],
+       "priority": str
+   }
+
+   ComplaintRecord (One row from Complaints table as a dict):
+   {
+       "uid": str,
+       "author_id": str,
+       "title": str,
+       "description": str,
+       "scope_tag": str,
+       "issue_tags": str,          # JSON string, e.g. '["WATER_ISSUE"]'
+       "priority": str,
+       "status": str,              # "OPEN" or "CLOSED"
+       "initial_sub_count": int,
+       "created_at": str,
+       "has_unread_alert": int     # 0 or 1 (included in user complaint queries)
+   }
+
+   CommentRecord (One row from Comments table as a dict):
+   {
+       "comment_id": int,
+       "complaint_uid": str,
+       "author_id": str,
+       "content": str,
+       "is_solution": int,         # 0 or 1
+       "upvotes": int,
+       "downvotes": int,
+       "created_at": str
+   }
+
+   VoteResultPayload (Returned after voting on a solution):
+   {
+       "success": bool,
+       "reopened": bool,
+       "msg": str
+   }
+
+   AuditLogRecord (One row from Audit_Logs table as a dict):
+   {
+       "log_id": int,
+       "complaint_uid": str,
+       "actor_id": str,
+       "action_type": str,
+       "details": str,
+       "timestamp": str
+   }
+
+   Session State Keys (Used in app.py st.session_state):
+   {
+       "logged_in": False,
+       "user_id": None,
+       "role": None,
+       "current_view": "LOOK",     # "RAISE", "LOOK", "MY_COMPLAINTS", "THREAD_DETAIL"
+       "selected_uid": None,
+       "draft_analysis": None
+   }
+
+
+====================================================================
+PERSON 1: core_logic.py (Login, Text Analyzer & Ticket ID Maker)
+====================================================================
+Note: Only use datetime, re, and nltk. Do NOT import sqlite3 or streamlit.
+
+[ ] 1. Setup Constants & Keyword Dictionaries
+    - Goal: Paste the shared lists at the top of the file and create your
+      keyword dictionaries (SYNONYM_MAP for issue tags and SCOPE_TRIGGERS
+      for hostel/floor/room locations).
+
+[ ] 2. Build Login Checker
+    - Function: authenticate_user(input_id: str, input_pwd: str) -> dict
+    - Goal: Check if the username and password match USER_IDS and PASSWORDS,
+      and return the AuthPayload dict.
+
+[ ] 3. Build Complaint Text Analyzer
+    - Function: parse_complaint_text(title: str, description: str) -> dict
+    - Goal: Read the title and description, find matching location words and
+      problem keywords using NLTK, decide the scope (Hostel > Floor > Room),
+      pick the issue tags and priority (High/Medium/Low), and return the
+      NLPAnalysisPayload dict.
+
+[ ] 4. Build Ticket ID Generator
+    - Function: generate_uid(scope_tag: str, priority: str, issue_tags: list[str], monthly_seq: int) -> str
+    - Goal: Combine the inputs into a single formatted ticket ID string like
+      "HSTL-HI-WAT-2611-0001".
+
+[ ] 5. Test in Terminal
+    - Goal: Run the file by itself with test strings to make sure all 3
+      functions return the exact dictionary keys listed in Part 1.
+
+
+====================================================================
+PERSON 2: database.py (SQLite Database & Queries)
+====================================================================
+Note: Use sqlite3, json, and datetime. Always return database rows as
+standard Python dicts (not raw tuples) so Person 3 and 4 can use key names.
+
+[ ] 1. Create Database Connection & Tables
+    - Functions:
+      get_connection() -> sqlite3.Connection
+      init_db() -> None
+    - Goal: Connect to "complaints.db" and create the 6 tables if they don't
+      exist yet (Complaints, Comments, Comment_Votes, Subscriptions,
+      Thread_Bans, Audit_Logs).
+
+[ ] 2. Build Monthly Ticket Counter
+    - Function: get_next_sequence_number(yymm: str) -> int
+    - Goal: Count how many tickets already exist for the current year/month
+      and return that number + 1.
+
+[ ] 3. Build New Complaint Saver
+    - Function: create_complaint_record(uid: str, author_id: str, title: str, description: str, scope_tag: str, issue_tags: list[str], priority: str) -> None
+    - Goal: Save the new complaint into Complaints (converting issue_tags to a
+      JSON string), subscribe the author in Subscriptions, and add a "created"
+      note in Audit_Logs.
+
+[ ] 4. Build Complaint Fetchers
+    - Functions:
+      get_all_complaints() -> list[dict]
+      get_user_complaints(user_id: str) -> list[dict]
+      get_complaint_by_uid(uid: str) -> dict | None
+    - Goal: Fetch all complaints (newest first), fetch complaints a user is
+      subscribed to (unread alerts first), or fetch one specific complaint.
+
+[ ] 5. Build Subscription & Notification Bell Helpers
+    - Functions:
+      subscribe_user(user_id: str, uid: str) -> None
+      trigger_notifications(uid: str, exclude_user_id: str) -> None
+      clear_user_notification(user_id: str, uid: str) -> None
+      get_unread_notification_count(user_id: str) -> int
+    - Goal: Add users to a thread's subscription list, turn on the unread
+      alert flag (1) for subscribers except the person who caused the update,
+      clear the flag (0) when they open the thread, and count unread alerts.
+
+[ ] 6. Build Comment & Audit Log Fetchers
+    - Functions:
+      get_comments(uid: str) -> list[dict]
+      get_audit_logs(uid: str) -> list[dict]
+    - Goal: Return all comments or audit logs for a specific complaint UID
+      so the UI can display them.
+
+
+====================================================================
+PERSON 3: workflows.py (Rules, Voting Math & Admin Actions)
+====================================================================
+Note: Import database.py to read and update tables.
+
+[ ] 1. Build Ban Checker
+    - Function: is_user_banned(uid: str, user_id: str) -> bool
+    - Goal: Check the Thread_Bans table and return True if the user is banned
+      from that complaint thread, or False if they are allowed.
+
+[ ] 2. Build Comment & Auto-Subscribe Workflow
+    - Function: post_comment_workflow(uid: str, user_id: str, content: str, is_solution: bool) -> tuple[bool, str]
+    - Goal: Block the comment if the user is banned. Otherwise, save the
+      comment to Comments, auto-subscribe the user to the thread, trigger
+      notifications for other subscribers, and return (True, message).
+
+[ ] 3. Build Close Issue Workflow
+    - Function: close_complaint_workflow(uid: str, actor_id: str, actor_role: str) -> tuple[bool, str]
+    - Goal: Allow only the complaint's author or an admin to close the ticket.
+      Count current subscribers, save that number into initial_sub_count, set
+      status to "CLOSED", notify subscribers, and log it in Audit_Logs.
+
+[ ] 4. Build Solution Voting & 2/3 Auto-Reopen Workflow
+    - Function: cast_solution_vote_workflow(comment_id: int, uid: str, voter_id: str, vote_delta: int) -> dict
+    - Goal: Block banned users. Record the user's upvote (+1) or downvote (-1)
+      and update the comment's totals. If the complaint is "CLOSED" and a
+      solution reaches upvotes >= (2/3) of initial_sub_count, automatically
+      reopen the complaint, notify everyone, log it, and return VoteResultPayload.
+
+[ ] 5. Build Admin Moderation Workflows
+    - Functions:
+      ban_user_from_thread(uid: str, admin_id: str, target_user_id: str) -> tuple[bool, str]
+      admin_modify_complaint(uid: str, admin_id: str, new_scope: str, new_tags: list[str], new_priority: str, new_status: str) -> None
+    - Goal: Let admins ban a user from a thread (making sure the complaint
+      author can never be banned) and let admins edit a complaint's tags,
+      scope, priority, or status while logging changes in Audit_Logs.
+
+
+====================================================================
+PERSON 4: app.py (Streamlit Screens & Button Wiring)
+====================================================================
+Note: Build the screens using fake sample dicts first, then plug in Person 1,
+2, and 3's functions once they finish.
+
+[ ] 1. Setup Startup & Session State
+    - Goal: Call database.init_db() at startup and set up the 6 session_state
+      keys from Part 1 if they don't exist yet.
+
+[ ] 2. Build Login Screen & Sidebar Menu
+    - Goal: Show the login box when logged_in is False. Once logged in, show
+      the sidebar with buttons for RAISE COMPLAINT, LOOK AT COMPLAINTS, and
+      MY COMPLAINTS (with the unread notification count next to it).
+
+[ ] 3. Build "Raise Complaint" Screen (current_view == "RAISE")
+    - Goal: Let the user type a title and description and click "Analyze" to
+      preview the AI-suggested scope, tags, and priority. Let them adjust the
+      dropdowns if needed, then click "Post Complaint" to generate the UID,
+      save to the database, and open the new thread.
+
+[ ] 4. Build Complaint List Screens (current_view == "LOOK" or "MY_COMPLAINTS")
+    - Goal: Display a clean table of complaints (showing the bell icon, UID,
+      title, status, priority, and scope/tags) and provide a way to open any
+      complaint's detail view.
+
+[ ] 5. Build Thread Detail Screen (current_view == "THREAD_DETAIL")
+    - Goal:
+      a) Clear the user's unread notification for this thread right away.
+      b) Show the complaint details, a Subscribe button, and a Close Issue
+         button (if the user is the author or an admin).
+      c) List all comments, highlighting solution comments with Upvote and
+         Downvote buttons.
+      d) Show the Add Comment box (or a warning banner if the user is banned).
+      e) If the user is an admin, show an expandable panel to edit complaint
+         settings, ban users, and view the Audit Logs table.
+
+
+====================================================================
+PART 2: MERGE ORDER (HOW TO PUT IT ALL TOGETHER)
+====================================================================
+
+[ ] Step 1: Put core_logic.py, database.py, workflows.py, and app.py in the
+            same folder.
+[ ] Step 2: Test core_logic.py and database.py separately first.
+[ ] Step 3: Test workflows.py with database.py.
+[ ] Step 4: Replace the fake sample data in app.py with the real function
+            calls and run: streamlit run app.py
+            
+            
+            
+GEETH (P0)-
+->SEARCH ALGO
+->AUTHENTICATION(I.E VALID ROLL NUMBER, PASSWORD, BANNED/NOT BANNED)(RETURNS TRUE/FALSE IF USER CAN LOGIN)
+->CREATE TICKET:
+        1)RUN IT THROUGH [SOME SPCIAL ALGO] AND SHOW TICKETS WITH SMILIAR QUERIES
+        2)IF TICKET HAS SIMILAR QUERIES ----> SHOW THOSE TICKETS ----> USER SUBCRVIES TO EXISTING TICKETS
+                                                      |
+                                                      |
+                                                      |
+                                                      V
+        3)NO SIMIALRITIES------------------CHOOSES NOT TO SUBSCRIBE(CAN ONLY DO IF SIMILARITY% IS LESS THAN X%)
+                                |
+                                |
+                                |
+                                V
+                        CREATE NEW TICKET
+                        
+-------------------------------------------------
+ARIA (P1)-
+
+->BIG DATABASE:
+    TABLE:
+    ->STUDENT INFO
+        ROLL_NO(ENCRYPTED) | BANNED/NOT | PASSWORD(ENCRYPTED)
+    ->ADMIN INFO
+        USER_ID | /*(TBE)*/
+        
+    ->COMPLAINT TABLE:
+            COMPLAINT NO.| TICKET_ID  | STATUS(CLOSED/OPEN)
+            
+    ->COMMENTS_UNDER_{TICKET_ID}
+        COMMENT NO.|ROLL_NO/USER_ID|CONTENT|IS_SOLUTION|VOTES(UPVOTES-DOWNVOTES)(**ONLY IF IS_SOLUTION IS TRUE**)
+    
+     
+
+
+
+        
+           
+    
