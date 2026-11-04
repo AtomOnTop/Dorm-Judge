@@ -3,6 +3,7 @@ from typing import TypedDict, Optional, List, Dict, Any
 
 class AuthPayload(TypedDict):
     authenticated: bool
+    reason : str
     user_id: Optional[str]
     ban_status: bool
 
