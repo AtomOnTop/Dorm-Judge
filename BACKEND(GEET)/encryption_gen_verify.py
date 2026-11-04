@@ -61,7 +61,7 @@ def process_login(payload: LoginCheckPayload, database: dict) -> AuthPayload:
     # If missing required credentials, immediately return unauthenticated payload
     if not user_id or not password:
         return AuthPayload(
-            authenticated=(False,"incomplete credentials")
+            authenticated=(False,"incomplete credentials"),
             user_id=None,
             ban_status=False
         )
