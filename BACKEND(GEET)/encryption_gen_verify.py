@@ -36,18 +36,22 @@ def register_user(user_id: str, password: str, database: dict) -> str:
     return hex_hash
 
 
-def authenticate_user(user_id: str, password: str, database: dict) -> bool:
+def authenticate_user(user_id: str, password: str, database: dict) -> (bool,str):
     #Step 6: Re-compute hash and verify using hmac.compare_digest.
     stored_hash = database.get(user_id)
     if not stored_hash:
-        return False
+        return (False,"User Not There")
 
     # Repeat steps 1 through 5
     candidate_hash = generate_password_hash(user_id, password)
 
     # Compare in constant time to prevent timing attacks
-    return hmac.compare_digest(candidate_hash, stored_hash)
-
+    check = hmac.compare_digest(candidate_hash, stored_hash)
+    if check:
+        return(True , "login successful")
+    else:
+        return(False , "invalid password")
+        
 def process_login(payload: LoginCheckPayload, database: dict) -> AuthPayload:
     # Extract the values into separate variables
     user_id = payload.get("user_id")
@@ -57,17 +61,18 @@ def process_login(payload: LoginCheckPayload, database: dict) -> AuthPayload:
     # If missing required credentials, immediately return unauthenticated payload
     if not user_id or not password:
         return AuthPayload(
-            authenticated=False,
+            authenticated=(False,"incomplete credentials")
             user_id=None,
             ban_status=False
         )
 
     # Check authentication against database
-    is_authenticated = authenticate_user(user_id, password, database)
+    (is_authenticated,reason_for_fail) = authenticate_user(user_id, password, database)
 
     # Return the AuthPayload TypedDict
     return AuthPayload(
         authenticated=is_authenticated,
+        reason = reason_for_fail
         user_id=user_id if is_authenticated else None,
         ban_status=False
     )
