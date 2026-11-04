@@ -72,7 +72,7 @@ def process_login(payload: LoginCheckPayload, database: dict) -> AuthPayload:
     # Return the AuthPayload TypedDict
     return AuthPayload(
         authenticated=is_authenticated,
-        reason = reason_for_fail
+        reason = reason_for_fail,
         user_id=user_id if is_authenticated else None,
         ban_status=False
     )
