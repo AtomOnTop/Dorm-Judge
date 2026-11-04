@@ -50,14 +50,13 @@ def authenticate_user(user_id: str, password: str, database: dict) -> tuple[bool
     if check:
         return(True , "login successful")
     else:
-        user_id=user_id if is_authenticated else
         return(False , "invalid password")
         
 def process_login(payload: LoginCheckPayload, database: dict) -> AuthPayload:
     # Extract the values into separate variables
-    user_id = payload.get("user_id")
-    password = payload.get("password")
-    role = payload.get("role")
+    user_id = payload.get("user_id",None)
+    password = payload.get("password",None)
+    role = payload.get("role",None)
 
     # If missing required credentials, immediately return unauthenticated payload
     if not user_id or not password:
