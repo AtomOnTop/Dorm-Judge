@@ -36,7 +36,7 @@ def register_user(user_id: str, password: str, database: dict) -> str:
     return hex_hash
 
 
-def authenticate_user(user_id: str, password: str, database: dict) -> (bool,str):
+def authenticate_user(user_id: str, password: str, database: dict) -> tuple[bool,str]:
     #Step 6: Re-compute hash and verify using hmac.compare_digest.
     stored_hash = database.get(user_id)
     if not stored_hash:
@@ -50,6 +50,7 @@ def authenticate_user(user_id: str, password: str, database: dict) -> (bool,str)
     if check:
         return(True , "login successful")
     else:
+        user_id=user_id if is_authenticated else
         return(False , "invalid password")
         
 def process_login(payload: LoginCheckPayload, database: dict) -> AuthPayload:
@@ -61,18 +62,19 @@ def process_login(payload: LoginCheckPayload, database: dict) -> AuthPayload:
     # If missing required credentials, immediately return unauthenticated payload
     if not user_id or not password:
         return AuthPayload(
-            authenticated=(False,"incomplete credentials"),
+            authenticated = False,
+            reason = "Invalid Credentials",
             user_id=None,
             ban_status=False
         )
 
     # Check authentication against database
-    (is_authenticated,reason_for_fail) = authenticate_user(user_id, password, database)
+    (is_authenticated,reason_for_fail_pass) = authenticate_user(user_id, password, database)
 
     # Return the AuthPayload TypedDict
     return AuthPayload(
         authenticated=is_authenticated,
-        reason = reason_for_fail,
+        reason = reason_for_fail_pass,
         user_id=user_id if is_authenticated else None,
         ban_status=False
     )
