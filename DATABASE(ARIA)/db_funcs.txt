@@ -1,0 +1,28 @@
+functions - 
+Student_Auth Queries - 
+---> password given user id 
+---> check is user id exists 
+---> Banned / Not banned 
+-------> make all of this into one function - return dict
+
+Complaint Table Queries-
+--->add_new_complaint ------------------------- 3
+--->add_subscriber_count ------------------ 1
+--->del_subscriber_count ------------------ 2
+--->get_open_complaints
+--->get_closed_complaints
+--->sort_by_tag ( tag, default = none , me -case -covered )  
+--->patch_complaint(Status:str | None = None, votes-for-reopening:int=0)
+
+
+Comments under {ticket_id}-
+--->add_first_comment(text and ticket_id) ----------- 3
+--->load_comments( return json / list of dictionaries )
+--->add_comment( dict ) - return comment number
+--->update_vote( ticket_id , comment_no , int +-1)
+
+
+Subscribed to Table Queries- 
+--->add_subscriber (add ticket_id and Roll_no ) ------------- 1
+--->del_subscriber (delete ticket_id and Roll_no ) ---------- 2
+
