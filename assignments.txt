@@ -42,7 +42,7 @@ PART 1: SHARED NAMES (EVERYONE MUST USE THESE EXACT NAMES)
         "role": str or None
    }
 
-   NLPAnalysisPayload (Returned by text analyzer):
+   NLPAnalysisPayload (Returned by text analyzer): #NO DATABASE NEEDED
    {
        "scope_tag": str,
        "issue_tags": list[str],
@@ -60,7 +60,6 @@ PART 1: SHARED NAMES (EVERYONE MUST USE THESE EXACT NAMES)
        "priority": str,
        "status": str,              # "OPEN" or "CLOSED"
        "initial_sub_count": int,
-       "created_at": str,
        "has_unread_alert": int     # 0 or 1 (included in user complaint queries)
    }
 
@@ -73,17 +72,17 @@ PART 1: SHARED NAMES (EVERYONE MUST USE THESE EXACT NAMES)
        "is_solution": int,         # 0 or 1
        "upvotes": int,
        "downvotes": int,
-       "created_at": str
+       "created_at": str #OPTIONAL
    }
 
-   VoteResultPayload (Returned after voting on a solution):
+   VoteResultPayload (Returned after voting on a closed solution for reopening appeal):
    {
        "success": bool,
        "reopened": bool,
        "msg": str
    }
 
-   AuditLogRecord (One row from Audit_Logs table as a dict):
+   AuditLogRecord (One row from Audit_Logs table as a dict): #STORES ALL CHANGES MADE TO COMMENT OVER TIME #!!!!OPTIONAL!!!!
    {
        "log_id": int,
        "complaint_uid": str,
@@ -93,14 +92,14 @@ PART 1: SHARED NAMES (EVERYONE MUST USE THESE EXACT NAMES)
        "timestamp": str
    }
 
-   Session State Keys (Used in app.py st.session_state):
+   Session State Keys (Used in app.py st.session_state): #NO DATABASE NEEDED
    {
-       "logged_in": False,
-       "user_id": None,
+       "logged_in": False, #CHECKS WHETHER USER IS AUTHENTICATED OR NOT AT EVERY ACTION
+       "user_id": None,   
        "role": None,
        "current_view": "LOOK",     # "RAISE", "LOOK", "MY_COMPLAINTS", "THREAD_DETAIL"
        "selected_uid": None,
-       "draft_analysis": None
+       "draft_analysis": None #TBD WHAT IS STORED. NUMBER OR MATRIX. USED BY BACKEND(GEET)
    }
 
 
@@ -298,19 +297,45 @@ ARIA (P1)-
 
 ->BIG DATABASE:
     TABLE:
-    ->STUDENT INFO
-        ROLL_NO(ENCRYPTED) | BANNED/NOT | PASSWORD(ENCRYPTED) | ROOM NO. | HOSTEL|
+    ->STUDENT AUTHENTICATION:
+        ROLL_NO(ENCRYPTED) | BANNED/NOT | PASSWORD(ENCRYPTED)
+   ->STUDENT INFO:
+        ROLL_NO | ROOM NO. | HOSTEL
     ->ADMIN INFO
         USER_ID | /*(TBE)*/
         
     ->COMPLAINT TABLE:
-            COMPLAINT NO.| TICKET_ID  | STATUS(CLOSED/OPEN)| SUBSCRIBER COUNT| 
+            COMPLAINT NO.| TICKET_ID | STATUS(CLOSED/OPEN) | SUBSCRIBER COUNT | VOTES_FOR_REOPENING(**ONLY IF STATUS == CLOSED**)
             
-    ->COMMENTS_UNDER_{TICKET_ID}:
-        COMMENT NO.|ROLL_NO/USER_ID(ENCRYPTED)|CONTENT|IS_SOLUTION|VOTES(UPVOTES-DOWNVOTES)(**ONLY IF IS_SOLUTION IS TRUE**)
+    ->COMMENTS_UNDER_{TICKET_ID}:(TICKET_ID is foreign key)
+        TICKET_ID|COMMENT NO.|ROLL_NO/USER_ID|CONTENT|IS_SOLUTION|VOTES(UPVOTES-DOWNVOTES)(**ONLY IF IS_SOLUTION IS TRUE**)
 
-   ->SUBSCRIBED TO:
-          | 
+   ->SUBSCRIBED TO: (Foreign Key is: TICKET_ID -> Complaint Table && ROLL.NO -> STUDENT INFO)
+        TICKET_ID | ROLL.NO|
+
+   -------------------------------------------------
+   ASH(P2)-
+
+   ->LOGGING IN: 
+               ROLL_NO PASSWORD
+               GIVE THAT TO GEET IN FORM OF LoginCheckPayload, invoke process_login() func.
+               RECEIVE AuthPayload
+               ->If receive (False,"User Not There"), RETURN "Invalid Username"
+               ->If receive (False,"Invalid Password"), RETURN 
+               ->If receive (False,"Banned"), RETURN
+               ->If receive (True,"Successful"), RETURN SUCCESS_CODE
+   ->RAISE COMPLAINTS:
+               *USER ENTERS TITLE, DESCRIPTION*
+               ->GIVE INFO TO GEET, RECEIVE NLPAnalysisPayload OR LISTS OF ISSUES WHICH ARE SIMILAR
+               ->Store mystical information in Session State Keys along with other info
+               ->--------------------> If received "L
+                 |
+                 |
+                 |
+                 V
+   ->VIEW COMPLAINTS:
+   ->
+   ->LOG OUT:
      
 
 
