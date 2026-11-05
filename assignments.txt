@@ -326,17 +326,37 @@ ARIA (P1)-
                ->If receive (True,"Successful"), RETURN SUCCESS_CODE
    ->RAISE COMPLAINTS:
                *USER ENTERS TITLE, DESCRIPTION*
-               ->GIVE INFO TO GEET, RECEIVE NLPAnalysisPayload OR LISTS OF ISSUES WHICH ARE SIMILAR
+               ->GIVE INFO TO GEET, RECEIVE NLPAnalysisPayload OR LISTS OF ISSUES WHICH ARE SIMILAR AND FWD INFO TO FRONTEND
                ->Store mystical information in Session State Keys along with other info
-               ->--------------------> If received "L
-                 |
-                 |
-                 |
-                 V
+               ->--------------------> If received SIMILAR ISSUES ---> Get user's option------->User says I will subscribe -----> Call database to INCREASE subscriber count(COMPLAINT TABLE) and ADD ROLL.NO
+                 |                                                             |                           |      
+                 |                                                             |                           |
+                 |                                                             |                           |             
+                 |                                                             |                           |
+                 |                                                             V                           V
+                 |                                                     I WANNA CREATE NEW          I WILL NOT SUBSCRIBE-----> GET TAGS ----> SUGGEST
+                 |                                                             |                                                               |
+                 |                                                             V                                                               |   
+                 V                                                     OPTION TO CHOOSE TAGS <--------------------------------------------------                                                   
+                                                                             TO USER
+                                                                               |
+                                                                               |
+                                                                               v      
+                                             MAKE TICKET ID FROM TAGS AND RETURN TO DATABASE(COMPLAINT TABLE, COMMENTS_UNDER_{TICKET_ID},SUBSCRIBED TO) ----> RETURN ALL INFO ABOUT COMMENT TO FRONTEND
+
+
+
+
    ->VIEW COMPLAINTS:
-   ->
-   ->LOG OUT:
-     
+                  Query for open complaints first and then closed complaints and give to frontend.
+                  If user has given tags for sorting, invoke `sort_by_tag()`
+                  If user presses an issue, invoke `load_comments()`
+
+
+   -Write Comment(Other than the first comment):
+                  
+               
+                                                                                    
 
 
 
