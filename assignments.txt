@@ -361,7 +361,15 @@ ARIA (P1)-
                   If user clicks upvote/downvote ----> invoke update_vote(ticket_id,comment_no,plus or minus 1)
 
    -Closing Issues:
-                  When student clicks, unconditionally invoke `sort_by_tag(me)`
+                  When student clicks, unconditionally invoke `sort_by_tag(me)` and display a `close issue` button.
+                  When admin closes---TBE
+
+                  CALL patch_complaint(Status="closed")
+
+CLOSE: REPORNING PART, ADMIN
+
+
+
                
                   
                
