@@ -305,7 +305,7 @@ ARIA (P1)-
         USER_ID | /*(TBE)*/
         
     ->COMPLAINT TABLE:
-            COMPLAINT NO.| TICKET_ID | STATUS(CLOSED/OPEN) | SUBSCRIBER COUNT | VOTES_FOR_REOPENING(**ONLY IF STATUS == CLOSED**)
+            COMPLAINT NO.|ROLL_NO. OF AUTHOR| TICKET_ID | STATUS(CLOSED/OPEN) | SUBSCRIBER COUNT | VOTES_FOR_REOPENING(**ONLY IF STATUS == CLOSED**)
             
     ->COMMENTS_UNDER_{TICKET_ID}:(TICKET_ID is foreign key)
         TICKET_ID|COMMENT NO.|ROLL_NO/USER_ID|CONTENT|IS_SOLUTION|VOTES(UPVOTES-DOWNVOTES)(**ONLY IF IS_SOLUTION IS TRUE**)
@@ -354,6 +354,15 @@ ARIA (P1)-
 
 
    -Write Comment(Other than the first comment):
+                  *USER WRITES A COMMENT AND SENDS IT*
+                  Send info to a function as a dict in the format of {Ticket_Id,Roll.No/User_ID,Content,Is_solution:bool} and get comment number, and send all info to front end
+
+   -Voting System:
+                  If user clicks upvote/downvote ----> invoke update_vote(ticket_id,comment_no,plus or minus 1)
+
+   -Closing Issues:
+                  When student clicks, unconditionally invoke `sort_by_tag(me)`
+               
                   
                
                                                                                     
