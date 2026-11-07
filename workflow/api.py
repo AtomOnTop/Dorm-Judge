@@ -51,10 +51,7 @@ def Login_Verification(roll_no:str,password:str) -> tuple[str,str]:
     if(auth_payload.authenticated == True):
         return ("success",auth_payload.reason)
     else:
-        if(auth_payload.reason == "invalid password"):
-            return ("failure", auth_payload.reason)
-        else:
-            return ("failure", auth_payload.reason)
+        return ("failure", auth_payload.reason)
 
 
 
