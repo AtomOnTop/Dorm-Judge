@@ -1,0 +1,6 @@
+[project]
+name = "dorm_judge"
+version = "0.1.0"
+
+[tool.setuptools]
+packages = ["workflow", "backend", "database"]
