@@ -230,7 +230,7 @@ def tuple_list_generator(complaint):
 
     for i in range(len(complaint)):
 
-        for j in range(i + 1, len(complaint)):
+        for j in range(i + 1, i + 6):  # Only consider pairs within a distance of 5 words
 
             distance = abs(j - i)
             weight = 1 / (distance * distance)  # Weight is inversely proportional to the square of the distance between words
