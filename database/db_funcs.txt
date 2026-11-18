@@ -14,6 +14,7 @@ Complaint Table Queries-
 --->sort_by_tag ( tag, default = none , me -case -covered )  
 --->patch_complaint(Status:str | None = None, votes-for-reopening:int=0)
 --->return_matrix_vectors ( give entire column as list )
+--->count_ticket_id ( take ticket-id-name and return count of ticket-id-name )
 
 
 Comments under {ticket_id}-
