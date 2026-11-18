@@ -64,6 +64,6 @@ class SessionStateKeys(TypedDict):
     logged_in: bool
     user_id: Optional[str]
     role: Optional[str]
-    current_view: str        # "RAISE", "LOOK", "MY_COMPLAINTS", "THREAD_DETAIL"
+    current_view: str        # "RAISE", "LOOK", "MY_COMPLAINTS", "THREAD_DETAIL", "HOMEPAGE"
     selected_uid: Optional[str]
     draft_analysis: Optional[Dict[str, Any]]
