@@ -1,4 +1,4 @@
-functions - 
+Functions - 
 Student_Auth Queries - 
 ---> password given user id 
 ---> check is user id exists 
