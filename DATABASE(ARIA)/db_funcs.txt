@@ -13,6 +13,7 @@ Complaint Table Queries-
 --->get_closed_complaints
 --->sort_by_tag ( tag, default = none , me -case -covered )  
 --->patch_complaint(Status:str | None = None, votes-for-reopening:int=0)
+--->return_matrix_vectors ( give entire column as list )
 
 
 Comments under {ticket_id}-
@@ -25,4 +26,3 @@ Comments under {ticket_id}-
 Subscribed to Table Queries- 
 --->add_subscriber (add ticket_id and Roll_no ) ------------- 1
 --->del_subscriber (delete ticket_id and Roll_no ) ---------- 2
-
